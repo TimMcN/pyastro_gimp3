@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# Gimp-Python - allows the writing of Gimp plugins in Python.
+#Gimp-Python - allows the writing of Gimp plugins in Python.
 #
 # Pyastro-Add-Copyright-Mark - Adds a copyright mark to an image.
 # Copyright (C) 2021  Bill Smith -- Updated to Gimp3 TM
