@@ -25,7 +25,7 @@ class pyastro_add_copyright_mark(Gimp.PlugIn):
         procedure.set_image_types("*")
 
         procedure.set_menu_label("PyAstro Add Copyright Mark")
-        procedure.add_menu_path('<Image>/Py-Astro/misc')
+        procedure.add_menu_path('<Image>/Py-Astro/Misc')
 
         procedure.set_documentation("Add Copyright Mark",
                                     "Add Copyright Mark",
