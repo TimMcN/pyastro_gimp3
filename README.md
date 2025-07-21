@@ -1,4 +1,4 @@
- Copyright (C) 2021  Bill Smith -- Updated to Gimp3 TM
+ Copyright (C) 2021  Bill Smith -- Updated for Gimp3 Py3 TM
 
  Redistribution and use in source and binary forms, with or without modification,
  are permitted provided that the following conditions are met:
