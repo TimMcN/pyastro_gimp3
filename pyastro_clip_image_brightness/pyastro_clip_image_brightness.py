@@ -1,5 +1,4 @@
 import sys
-
 import gi
 gi.require_version('Gimp', '3.0')
 from gi.repository import Gimp
@@ -46,51 +45,59 @@ class pyastro_clip_image_brightness(Gimp.PlugIn):
     def run(self, procedure, run_mode, image, drawables, config, run_data):
         if run_mode == Gimp.RunMode.INTERACTIVE:
             GimpUi.init("pyastro_clip_image_brightness")
-            Gimp.context_push()
+            
             dialog=GimpUi.ProcedureDialog.new(procedure=procedure, config=config)
             dialog.get_widget("rclip", GimpUi.SpinScale)
             dialog.get_widget("gclip", GimpUi.SpinScale)
             dialog.get_widget("bclip", GimpUi.SpinScale)
-            
             box = dialog.fill(None)
+            
+            
+            Gimp.context_push()
+            backup = drawables[0].copy()
+            def preview(config, property_name=None):
+                revert = backup.copy()
+                image.insert_layer(revert, None, -1)
+                image.merge_down(revert, 0)
+                rclip = config.get_property("rclip")
+                gclip = config.get_property("gclip")
+                bclip = config.get_property("bclip")
 
+                rmax = rclip /100.0
+                gmax = gclip /100.0
+                bmax = bclip /100.0
+
+                mode_subtract = 8
+                width = image.get_width()
+                height = image.get_height()
+                l1 = Gimp.Layer.copy(drawables[0])
+                image.insert_layer(l1, None, -1)
+                
+                mask = Gimp.Layer.new(image, "Mask...", width, height, l1.type(), l1.get_opacity(), Gimp.LayerMode.NORMAL)
+                c=Gegl.Color()
+                c.set_rgba(rmax,gmax,bmax, 1.0)
+                print(f"{rmax} {gmax} {bmax} | {rclip} {bclip} {gclip}")
+                print(c.get_rgba())
+                print(Gimp.context_set_background(c))
+                mask.fill(Gimp.FillType.BACKGROUND)
+                image.insert_layer(mask, None, -1)
+                image.merge_down(mask, 0)
+                image.get_layers()[0].set_mode(Gimp.LayerMode.SUBTRACT)
+                image.merge_down(image.get_layers()[0], 0)
+                Gimp.displays_flush()
+            image.undo_group_start()
+            config.connect("notify", preview)
             if not dialog.run():
+                image.insert_layer(backup, None, -1)
+                image.merge_down(backup, 0)
                 dialog.destroy()
+                image.undo_group_end()
+
                 return procedure.new_return_values(Gimp.PDBStatusType.CANCEL, None)
             else:
                 dialog.destroy()
-            image.undo_group_start()
-
-
-            rclip = config.get_property("rclip")
-            gclip = config.get_property("gclip")
-            bclip = config.get_property("bclip")
-
-            rmax = rclip /100.0
-            gmax = gclip /100.0
-            bmax = bclip /100.0
-
-            mode_subtract = 8
-            width = image.get_width()
-            height = image.get_height()
-            l1 = Gimp.Layer.copy(drawables[0])
-            image.insert_layer(l1, None, -1)
-            
-            mask = Gimp.Layer.new(image, "Mask...", width, height, l1.type(), l1.get_opacity(), Gimp.LayerMode.NORMAL)
-            
-            c=Gegl.Color.new("")
-            c.set_rgba(rmax,gmax,bmax, 1.0)
-            print(f"{rmax} {gmax} {bmax} | {rclip} {bclip} {gclip}")
-            print(c.get_rgba())
-            print(Gimp.context_set_background(c))
-            mask.fill(Gimp.FillType.BACKGROUND)
-            image.insert_layer(mask, None, -1)
-            image.merge_down(mask, 0)
-            image.get_layers()[0].set_mode(Gimp.LayerMode.SUBTRACT)
-            image.merge_down(image.get_layers()[0], 0)
-
-            Gimp.context_pop()
             image.undo_group_end()
+            Gimp.context_pop()
         return procedure.new_return_values(Gimp.PDBStatusType.SUCCESS, None)
 Gimp.main(pyastro_clip_image_brightness.__gtype__, sys.argv)
 
