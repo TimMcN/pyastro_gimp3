@@ -38,38 +38,34 @@ class pyastro_big_gaussian_blur(Gimp.PlugIn):
     def run(self, procedure, run_mode, image, drawables, config, run_data):
         if run_mode == Gimp.RunMode.INTERACTIVE:
             GimpUi.init("pyastro_big_gaussian_blur")
-            self.prev = False
-
             dialog=GimpUi.ProcedureDialog.new(procedure=procedure, config=config)
             widget = dialog.get_widget("radius", GimpUi.SpinScale)
-            filter = Gimp.DrawableFilter.new(drawables[0], 'gegl:gaussian-blur')
             image.undo_group_start()
-
             Gimp.context_push()    
+            backup = drawables[0].copy()
             def preview(widget):
-                if self.prev:
-                    image.remove_layer(image.get_layers()[-1])
-                self.prev=True
-                self.l1 = Gimp.Layer.copy(drawables[0])
-                filter = Gimp.DrawableFilter.new(self.l1, 'gegl:gaussian-blur')
+                revert = backup.copy()
+                image.insert_layer(revert, None, -1)
+                image.merge_down(revert, 0)
+                drawable = image.get_layers()[0]
+                filter = Gimp.DrawableFilter.new(drawable, 'gegl:gaussian-blur')
                 gconf = filter.get_config()
                 gconf.set_property('std-dev-x', widget.get_value())
                 gconf.set_property('std-dev-y', widget.get_value())
-                self.l1.merge_filter(filter)
-                image.insert_layer(self.l1, None, -1)
+                drawable.merge_filter(filter)
                 Gimp.displays_flush()
             widget.connect("value-changed", preview)
             box = dialog.fill(None)
             preview(widget)
             if not dialog.run():
-                image.remove_layer(image.get_layers()[-1])
+                image.insert_layer(backup, None, -1)
+                image.merge_down(backup,0)
                 Gimp.displays_flush()
                 dialog.destroy()
                 image.undo_group_end()
                 return procedure.new_return_values(Gimp.PDBStatusType.CANCEL, None)
             else:
                 dialog.destroy()
-                image.merge_down(self.l1, 0)
                 image.undo_group_end()
             Gimp.context_pop()
             
