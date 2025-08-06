@@ -85,6 +85,7 @@ class pyastro_clip_image_brightness(Gimp.PlugIn):
                 image.get_layers()[0].set_mode(Gimp.LayerMode.SUBTRACT)
                 image.merge_down(image.get_layers()[0], 0)
                 Gimp.displays_flush()
+            preview(config, None)
             image.undo_group_start()
             config.connect("notify", preview)
             if not dialog.run():
@@ -92,7 +93,6 @@ class pyastro_clip_image_brightness(Gimp.PlugIn):
                 image.merge_down(backup, 0)
                 dialog.destroy()
                 image.undo_group_end()
-
                 return procedure.new_return_values(Gimp.PDBStatusType.CANCEL, None)
             else:
                 dialog.destroy()
