@@ -39,9 +39,9 @@ class pyastro_set_black_point(Gimp.PlugIn):
         if bpp > 8:
             Gimp.message("Error too many bytes per pixel")
             return procedure.new_return_values(Gimp.PDBStatusType.EXECUTION_ERROR)
-        avg_red, sig_red, median, pixels, kount, per_red = drawables[0].histogram(1, 0.0, 1.0)
-        avg_grn, sig_grn, median, pixels, kount, per_grn = drawables[0].histogram(2, 0.0, 1.0)
-        avg_blu, sig_blu, median, pixels, kount, per_blu = drawables[0].histogram(2, 0.0, 1.0)
+        suc,avg_red, sig_red, median, pixels, kount, per_red = drawables[0].histogram(1, 0.0, 1.0)
+        suc,avg_grn, sig_grn, median, pixels, kount, per_grn = drawables[0].histogram(2, 0.0, 1.0)
+        suc,avg_blu, sig_blu, median, pixels, kount, per_blu = drawables[0].histogram(2, 0.0, 1.0)
 
         if avg_red < sig_red or avg_grn < sig_grn or avg_blu < sig_blu:
             Gimp.Message("Black point reset, not practical for this image")
