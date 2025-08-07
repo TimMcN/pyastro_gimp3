@@ -34,17 +34,23 @@ class pyastro_set_black_point(Gimp.PlugIn):
     def run(self, procedure, run_mode, image, drawables, config, run_data):
         GimpUi.init("Set Black Point")
         image.undo_group_start()
-
-        bpp = drawables[0].get_bpp()
+        print("Entered set black point")
+        if drawables == []:
+            drawable = image.get_selected_layers()[0]
+            print("Empty List")
+        else:
+            drawable = drawables[0]
+            print("Non Empty")
+        bpp = drawable.get_bpp()
         if bpp > 8:
             Gimp.message("Error too many bytes per pixel")
             return procedure.new_return_values(Gimp.PDBStatusType.EXECUTION_ERROR)
-        suc,avg_red, sig_red, median, pixels, kount, per_red = drawables[0].histogram(1, 0.0, 1.0)
-        suc,avg_grn, sig_grn, median, pixels, kount, per_grn = drawables[0].histogram(2, 0.0, 1.0)
-        suc,avg_blu, sig_blu, median, pixels, kount, per_blu = drawables[0].histogram(2, 0.0, 1.0)
+        suc,avg_red, sig_red, median, pixels, kount, per_red = drawable.histogram(1, 0.0, 1.0)
+        suc,avg_grn, sig_grn, median, pixels, kount, per_grn = drawable.histogram(2, 0.0, 1.0)
+        suc,avg_blu, sig_blu, median, pixels, kount, per_blu = drawable.histogram(2, 0.0, 1.0)
 
         if avg_red < sig_red or avg_grn < sig_grn or avg_blu < sig_blu:
-            Gimp.Message("Black point reset, not practical for this image")
+            Gimp.message("Black point reset, not practical for this image")
             return procedure.new_return_values(Gimp.PDBStatusType.CALLING_ERROR)
         
         if bpp <=4:
@@ -59,7 +65,7 @@ class pyastro_set_black_point(Gimp.PlugIn):
         ddg = max(0.0, avg_grn - sig_grn)
         ddb = max(0.0, avg_blu- sig_blu)
 
-        new_layer = Gimp.Layer.new(image,"Mask...", drawables[0].get_width(), drawables[0].get_height(), drawables[0].type(), drawables[0].get_opacity(), 0)
+        new_layer = Gimp.Layer.new(image,"Mask...", drawable.get_width(), drawable.get_height(), drawable.type(), drawable.get_opacity(), 0)
         image.insert_layer(new_layer, None, -1)
         Gimp.context_set_default_colors()
         new_layer.edit_fill(Gimp.FillType.BACKGROUND)
